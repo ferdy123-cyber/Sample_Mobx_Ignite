@@ -56,7 +56,7 @@ export class Api {
     }
     return {
       kind: "ok",
-      data: response.data.data,
+      data: response.data,
     }
   }
 
