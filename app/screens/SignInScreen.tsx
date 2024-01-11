@@ -2,7 +2,6 @@ import React, { FC } from "react"
 import { observer } from "mobx-react-lite"
 import { AppStackScreenProps } from "app/navigators"
 import { View, Text, Input, Button } from "native-base"
-import { useStores } from "app/models"
 
 interface SignInScreenProps extends AppStackScreenProps<"SignIn"> {}
 
