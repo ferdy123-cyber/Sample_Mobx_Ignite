@@ -1,3 +1,4 @@
+import { api } from "app/services/api"
 import { Instance, SnapshotOut, types } from "mobx-state-tree"
 
 export const AuthenticationStoreModel = types
@@ -19,6 +20,15 @@ export const AuthenticationStoreModel = types
     },
   }))
   .actions((store) => ({
+    async sample() {
+      // fetching
+      const response = await api.sample({})
+      if (response.kind !== "ok") {
+        // eror request
+        return
+      }
+      // success request
+    },
     setAuthToken(value?: string) {
       store.authToken = value
     },

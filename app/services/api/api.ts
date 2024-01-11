@@ -44,6 +44,22 @@ export class Api {
   /**
    * Gets a list of recent React Native Radio episodes.
    */
+
+  async sample(data: object) {
+    // make the api call
+    const response: ApiResponse<any> = await this.apisauce.get(`sample`, data)
+    if (!response.ok) {
+      const problem = getGeneralApiProblem(response)
+      if (problem) {
+        return { ...problem, data: "error" }
+      }
+    }
+    return {
+      kind: "ok",
+      data: response.data.data,
+    }
+  }
+
   async getEpisodes(): Promise<{ kind: "ok"; episodes: EpisodeSnapshotIn[] } | GeneralApiProblem> {
     // make the api call
     const response: ApiResponse<ApiFeedResponse> = await this.apisauce.get(
