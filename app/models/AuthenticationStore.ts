@@ -1,15 +1,22 @@
 import { api } from "app/services/api"
 import { Instance, SnapshotOut, types } from "mobx-state-tree"
+import { withSetPropAction } from "./helpers/withSetPropAction"
+import { Toast } from "native-base"
 
 export const AuthenticationStoreModel = types
   .model("AuthenticationStore")
   .props({
     authToken: types.maybe(types.string),
     authEmail: "",
+    profile: types.frozen<any>(),
+    loginFetch: types.optional(types.boolean, false),
+    // types.frozen<any>() => type untuk object,
+    // types.array(types.frozen<any>()) => type untuk array,
+    // types.optional(types.boolean, false) => type untuk boolean
   })
   .views((store) => ({
     get isAuthenticated() {
-      return !!store.authToken
+      return !!store.profile
     },
     get validationError() {
       if (store.authEmail.length === 0) return "can't be blank"
@@ -19,6 +26,7 @@ export const AuthenticationStoreModel = types
       return ""
     },
   }))
+  .actions(withSetPropAction)
   .actions((store) => ({
     async sample() {
       // fetching
@@ -36,8 +44,22 @@ export const AuthenticationStoreModel = types
       store.authEmail = value.replace(/ /g, "")
     },
     logout() {
-      store.authToken = undefined
+      store.profile = undefined
       store.authEmail = ""
+    },
+    async login(data: object) {
+      // fetching
+      store.setProp("loginFetch", true)
+      const response = await api.login(data)
+      console.log(response)
+      if (response.kind !== "ok") {
+        // eror request
+        store.setProp("loginFetch", false)
+        return
+      }
+      store.setProp("loginFetch", false)
+      store.setProp("profile", response.data)
+      // success request
     },
   }))
 

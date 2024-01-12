@@ -90,6 +90,36 @@ export class Api {
       return { kind: "bad-data" }
     }
   }
+
+  async login(data: object) {
+    // make the api call
+    const response: ApiResponse<any> = await this.apisauce.post(`auth/login`, data)
+    if (!response.ok) {
+      const problem = getGeneralApiProblem(response)
+      if (problem) {
+        return { ...problem, data: "error" }
+      }
+    }
+    return {
+      kind: "ok",
+      data: response.data,
+    }
+  }
+
+  async getListUser() {
+    // make the api call
+    const response: ApiResponse<any> = await this.apisauce.get(`users`)
+    if (!response.ok) {
+      const problem = getGeneralApiProblem(response)
+      if (problem) {
+        return { ...problem, data: "error" }
+      }
+    }
+    return {
+      kind: "ok",
+      data: response.data.users,
+    }
+  }
 }
 
 // Singleton instance of the API for convenience

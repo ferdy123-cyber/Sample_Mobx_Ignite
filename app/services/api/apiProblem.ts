@@ -1,4 +1,5 @@
 import { ApiResponse } from "apisauce"
+import { Toast } from "native-base"
 
 export type GeneralApiProblem =
   /**
@@ -43,32 +44,75 @@ export type GeneralApiProblem =
  *
  * @param response The api response.
  */
-export function getGeneralApiProblem(response: ApiResponse<any>): GeneralApiProblem | null {
-  switch (response.problem) {
-    case "CONNECTION_ERROR":
-      return { kind: "cannot-connect", temporary: true }
-    case "NETWORK_ERROR":
-      return { kind: "cannot-connect", temporary: true }
-    case "TIMEOUT_ERROR":
-      return { kind: "timeout", temporary: true }
-    case "SERVER_ERROR":
-      return { kind: "server" }
-    case "UNKNOWN_ERROR":
-      return { kind: "unknown", temporary: true }
-    case "CLIENT_ERROR":
-      switch (response.status) {
-        case 401:
-          return { kind: "unauthorized" }
-        case 403:
-          return { kind: "forbidden" }
-        case 404:
-          return { kind: "not-found" }
-        default:
-          return { kind: "rejected" }
-      }
-    case "CANCEL_ERROR":
-      return null
+export function getGeneralApiProblem(response: ApiResponse<any>) {
+  if (
+    !response.ok &&
+    response.data &&
+    response.data.message &&
+    response.data.message == "Refresh Token Invalid"
+  ) {
+    return { kind: "Sesi telah berakhir" }
   }
 
-  return null
+  if (!response.ok && response.data && response.data.message) {
+    if (response.status !== 400) {
+      if (response.data.code == "900902") {
+        console.log("tendang ke login")
+        return {
+          kind: response.data.code ? response.data.code : "Unknown Error From Backend",
+        }
+      }
+      if (response.data.code == "900901") {
+        // console.log("melakukan refresh token")
+        return {
+          kind: response.data.code ? response.data.code : "Unknown Error From Backend",
+        }
+      }
+      Toast.show({
+        description: response.data.message ? response.data.message : "Unknown Error From Backend",
+      })
+      return { kind: response.data.message ? response.data.message : "Unknown Error From Backend" }
+    } else if (response.status === 400) {
+      Toast.show({ description: response.data.message })
+      return { kind: response.data.message }
+    } else {
+      Toast.show({ description: "Unknown Error From Backend" })
+      return { kind: "Unknown Error From Backend" }
+    }
+  }
+
+  if (!response.ok && response.data && response.data.error) {
+    if (response.status !== 400) {
+      Toast.show({
+        description: response.data.error ? response.data.error : "Unknown Error From Backend",
+      })
+      return { kind: response.data.error ? response.data.error : "Unknown Error From Backend" }
+    } else if (response.status === 400) {
+      Toast.show({ description: response.data.error })
+      return { kind: response.data.error }
+    } else {
+      Toast.show({ description: "Unknown Error From Backend" })
+      return { kind: "Unknown Error From Backend" }
+    }
+  }
+
+  if (!response.ok && response.problem && response.problem === "TIMEOUT_ERROR") {
+    Toast.show({ description: "Gagal Terkoneksi ke server, harap coba lagi" })
+    return { kind: "Gagal Terkoneksi ke server, harap coba lagi" }
+  }
+
+  if (!response.ok && response.problem && response.problem === "NETWORK_ERROR") {
+    Toast.show({ description: "Tidak dapat terhubung ke server" })
+    Toast.closeAll()
+    return { kind: "Tidak dapat terhubung ke server" }
+  }
+
+  if (!response.ok && response.problem && response.problem === "SERVER_ERROR") {
+    Toast.show({ description: "Tidak dapat terhubung ke server" })
+    Toast.closeAll()
+    return { kind: "Tidak dapat terhubung ke server" }
+  }
+
+  Toast.show({ description: "Terjadi masalah di server" })
+  return { kind: "Tidak dapat terhubung ke server" }
 }
